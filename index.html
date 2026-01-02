@@ -3,31 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小豬撲滿 - 家庭帳本</title>
+    <title>小豬撲滿 - 專業紀錄版</title>
     <style>
         :root { --primary: #ff6b6b; --secondary: #4ecdc4; --bg: #f7f9fc; --card: #ffffff; --text: #2d3436; --gray: #95a5a6; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+
+        /* 區塊通用樣式 */
         .header, .card, .log-section { width: 100%; max-width: 500px; background: var(--card); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; padding: 15px; box-sizing: border-box; }
+
+        /* 頂部設定 */
         .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .ex-rate-input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
         .currency-toggle { background: #eee; padding: 4px; border-radius: 10px; display: flex; }
         .currency-toggle label { padding: 6px 12px; cursor: pointer; border-radius: 8px; font-size: 0.85rem; }
         input[type="radio"] { display: none; }
         input[type="radio"]:checked + label { background: var(--primary); color: white; }
+
+        /* 工具列 */
         .tool-bar { display: flex; gap: 8px; margin-top: 10px; }
         button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.1s; color: white; }
         .btn-small { flex: 1; padding: 8px; font-size: 0.8rem; }
         .btn-undo { background: var(--gray); }
         .btn-admin { background: #636e72; }
+
+        /* 兒童卡片 */
         .card { border-left: 10px solid var(--primary); }
         .name-input { font-size: 1.2rem; font-weight: 800; border: none; background: transparent; width: 100%; outline: none; }
         .balance-display { font-size: 1.7rem; font-family: monospace; font-weight: bold; color: var(--primary); margin: 8px 0; }
         .deposit-zone { display: flex; gap: 8px; }
         .deposit-input { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 10px; outline: none; width: 40%; }
         .btn-deposit { padding: 0 12px; height: 45px; font-size: 0.9rem; flex-shrink: 0; }
+
+        /* 紀錄區 */
         .log-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; color: var(--gray); border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .log-item { font-size: 0.75rem; border-bottom: 1px solid #f8f8f8; padding: 8px 0; }
+        .log-item { font-size: 0.75rem; border-bottom: 1px solid #f1f3f5; padding: 10px 0; line-height: 1.5; }
         .log-time { color: #b2bec3; font-family: monospace; }
+        .tag { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.7rem; margin-right: 4px; }
+        .tag-deposit { background: var(--secondary); }
+        .tag-expense { background: var(--primary); }
+        .tag-admin { background: #636e72; }
+        .log-amount { color: #636e72; display: block; margin-top: 2px; }
+
+        /* 後台遮罩 */
         #backend-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; padding: 25px; box-sizing: border-box; overflow-y: auto; color: white; }
         .backend-item { background: #333; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
         .backend-item input { width: 100%; background: #111; color: #00ff00; border: 1px solid #444; padding: 8px; font-size: 1.1rem; }
@@ -40,7 +57,7 @@
         <span>匯率 1 USD = <input type="number" id="exRate" class="ex-rate-input" value="31.42" onchange="saveData()"> TWD</span>
     </div>
     <div class="settings-row">
-        <span>幣別:</span>
+        <span>顯示幣別:</span>
         <div class="currency-toggle">
             <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')"><label for="currUSD">USD</label>
             <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')"><label for="currTWD">TWD</label>
@@ -49,21 +66,23 @@
     <div class="tool-bar">
         <button class="btn-small btn-undo" onclick="undo()">↩ 復原</button>
         <button class="btn-small btn-undo" onclick="redo()">↪ 重做</button>
-        <button class="btn-small btn-admin" onclick="openBackend()">⚙️ 後台修改</button>
+        <button class="btn-small btn-admin" onclick="openBackend()">⚙️ 後台</button>
     </div>
 </div>
 
 <div id="kids-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
 
 <div class="log-section">
-    <div class="log-title">🕒 最近紀錄</div>
-    <div id="log-list"></div>
+    <div class="log-title">🕒 最近 10 筆變動紀錄</div>
+    <div id="log-list">
+        <div style="text-align: center; color: #ccc; padding: 10px;">尚無紀錄</div>
+    </div>
 </div>
 
 <div id="backend-overlay">
-    <h2>🛠 後台修改</h2>
+    <h2>🛠 後台數值修改</h2>
     <div id="backend-list"></div>
-    <button onclick="saveBackend()" style="width:100%; padding:15px; background:var(--primary); border-radius:10px;">儲存</button>
+    <button onclick="saveBackend()" style="width:100%; padding:15px; background:var(--primary); border-radius:10px;">確認儲存</button>
     <button onclick="closeBackend()" style="width:100%; margin-top:10px; padding:10px; background:none; border:1px solid #555;">取消</button>
 </div>
 
@@ -72,13 +91,13 @@
     let state = { preferredCurrency: "USD", exRate: 31.42, kids: [
         { id: 0, name: "Lionel", baseBalance: 100, lastTimestamp: Date.now() },
         { id: 1, name: "Yosie", baseBalance: 89.99, lastTimestamp: Date.now() },
-        { id: 2, name: "小朋友C", baseBalance: 89.99, lastTimestamp: Date.now() }
+        { id: 2, name: "Yvonne", baseBalance: 89.99, lastTimestamp: Date.now() }
     ], logs: [] };
 
     let historyStack = [], redoStack = [];
 
     function init() {
-        const saved = localStorage.getItem('piggy_bank_final');
+        const saved = localStorage.getItem('piggy_bank_v5');
         if (saved) state = JSON.parse(saved);
         document.getElementById('exRate').value = state.exRate;
         if (state.preferredCurrency === "TWD") document.getElementById('currTWD').checked = true;
@@ -88,12 +107,13 @@
 
     function saveData() {
         state.exRate = parseFloat(document.getElementById('exRate').value) || 31.42;
-        localStorage.setItem('piggy_bank_final', JSON.stringify(state));
+        localStorage.setItem('piggy_bank_v5', JSON.stringify(state));
     }
 
-    function addLog(name, oldVal, newVal) {
+    // 新增動作紀錄
+    function addLog(action, name, oldVal, newVal) {
         const time = new Date().toLocaleString('zh-TW', { hour12: false });
-        state.logs.unshift({ time, name, oldVal, newVal });
+        state.logs.unshift({ time, action, name, oldVal, newVal });
         if (state.logs.length > 10) state.logs.pop();
         renderLogs();
     }
@@ -103,12 +123,20 @@
         const rate = state.exRate;
         const sym = isTWD ? "NT$" : "$";
         const dec = isTWD ? 5 : 6;
-        document.getElementById('log-list').innerHTML = state.logs.map(log => `
-            <div class="log-item">
-                <span class="log-time">[${log.time.split(' ')[1]}]</span> <b>${log.name}</b><br>
-                ${sym}${(log.oldVal * (isTWD ? rate : 1)).toFixed(dec)} ➜ ${sym}${(log.newVal * (isTWD ? rate : 1)).toFixed(dec)}
-            </div>
-        `).join('');
+
+        document.getElementById('log-list').innerHTML = state.logs.map(log => {
+            let tagClass = "tag-admin";
+            if(log.action === "存入") tagClass = "tag-deposit";
+            if(log.action === "支出") tagClass = "tag-expense";
+
+            return `
+                <div class="log-item">
+                    <span class="log-time">[${log.time.split(' ')[1]}]</span>
+                    <span class="tag ${tagClass}">${log.action}</span> <b>${log.name}</b>
+                    <span class="log-amount">${sym}${(log.oldVal * (isTWD ? rate : 1)).toFixed(dec)} ➜ ${sym}${(log.newVal * (isTWD ? rate : 1)).toFixed(dec)}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     function calculateCurrentBalance(kid) {
@@ -121,6 +149,8 @@
         const input = document.getElementById(`input-${id}`);
         let amount = parseFloat(input.value);
         if (isNaN(amount) || amount === 0) return;
+
+        const actionType = isExpense ? "支出" : "存入";
         if (isExpense) amount = -Math.abs(amount);
 
         pushHistory();
@@ -130,7 +160,8 @@
 
         kid.baseBalance = oldUsd + usdToAdd;
         kid.lastTimestamp = Date.now();
-        addLog(kid.name, oldUsd, kid.baseBalance);
+
+        addLog(actionType, kid.name, oldUsd, kid.baseBalance);
         input.value = ''; saveData();
     }
 
@@ -142,18 +173,18 @@
                 <div class="deposit-zone">
                     <input type="number" class="deposit-input" id="input-${kid.id}" placeholder="金額" inputmode="decimal">
                     <button class="btn-deposit" style="background:var(--secondary);" onclick="deposit(${kid.id}, false)">存入</button>
-                    <button class="btn-deposit" style="background:#ff7675;" onclick="deposit(${kid.id}, true)">支出</button>
+                    <button class="btn-deposit" style="background:var(--primary);" onclick="deposit(${kid.id}, true)">支出</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function updateName(id, name) { state.kids.find(k => k.id === id).name = name; saveData(); }
+    function updateName(id, name) { state.kids.find(k => k.id === id).name = name; saveData(); renderLogs(); }
 
     function openBackend() {
         document.getElementById('backend-list').innerHTML = state.kids.map(kid => `
             <div class="backend-item">
-                <label>${kid.name} (USD基準)</label>
+                <label>${kid.name} (USD 基準額)</label>
                 <input type="number" id="back-${kid.id}" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(6)}">
             </div>
         `).join('');
@@ -168,7 +199,7 @@
             if (!isNaN(newVal) && Math.abs(oldUsd - newVal) > 0.000001) {
                 kid.baseBalance = newVal;
                 kid.lastTimestamp = Date.now();
-                addLog(kid.name, oldUsd, newVal);
+                addLog("後台修改", kid.name, oldUsd, newVal);
             }
         });
         saveData(); closeBackend();
