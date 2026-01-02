@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小豬撲滿 - 家庭虛擬帳本</title>
+    <title>小豬撲滿 - 完整紀錄版</title>
     <style>
         :root {
             --primary: #ff6b6b;
@@ -12,6 +12,7 @@
             --card: #ffffff;
             --text: #2d3436;
             --gray: #95a5a6;
+            --log-bg: #f1f3f5;
         }
 
         body {
@@ -23,195 +24,71 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            -webkit-user-select: none; /* 防止手機長按選取文字 */
         }
 
-        /* 頂部控制區 */
-        .header {
+        /* 介面區塊樣式 */
+        .header, .card, .log-section {
             width: 100%;
             max-width: 500px;
             background: var(--card);
-            padding: 15px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-sizing: border-box;
+            padding: 15px;
         }
 
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ex-rate-input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
 
-        .ex-rate-input {
-            width: 80px;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        /* 幣別切換按鈕樣式 */
-        .currency-toggle {
-            background: #eee;
-            padding: 4px;
-            border-radius: 10px;
-            display: flex;
-        }
-        .currency-toggle label {
-            padding: 6px 15px;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+        .currency-toggle { background: #eee; padding: 4px; border-radius: 10px; display: flex; }
+        .currency-toggle label { padding: 6px 12px; cursor: pointer; border-radius: 8px; font-size: 0.85rem; }
         input[type="radio"] { display: none; }
-        input[type="radio"]:checked + label {
-            background: var(--primary);
-            color: white;
-        }
+        input[type="radio"]:checked + label { background: var(--primary); color: white; }
 
-        /* 歷史與後台按鈕 */
-        .tool-bar {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .btn-small {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-        }
+        .tool-bar { display: flex; gap: 8px; margin-top: 10px; }
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        button:active { transform: scale(0.98); }
+        .btn-small { flex: 1; padding: 8px; font-size: 0.8rem; color: white; }
         .btn-undo { background: var(--gray); }
         .btn-admin { background: #636e72; }
 
-        /* 兒童卡片樣式 */
-        .card {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-            border-left: 10px solid var(--primary);
-            transition: transform 0.2s;
-        }
+        /* 卡片內容 */
+        .card { border-left: 10px solid var(--primary); padding: 20px; }
+        .name-input { font-size: 1.2rem; font-weight: 800; border: none; background: transparent; width: 100%; outline: none; }
+        .balance-display { font-size: 1.8rem; font-family: monospace; font-weight: bold; color: var(--primary); margin: 8px 0; }
+        .deposit-zone { display: flex; gap: 10px; }
+        .deposit-input { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        .btn-deposit { background: var(--secondary); color: white; padding: 0 15px; }
 
-        .name-input {
-            font-size: 1.3rem;
-            font-weight: 800;
-            border: none;
-            background: transparent;
-            color: var(--text);
-            width: 100%;
-            margin-bottom: 5px;
-            outline: none;
-        }
+        /* 紀錄區樣式 */
+        .log-section { background: var(--card); }
+        .log-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; color: var(--gray); border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .log-item { font-size: 0.75rem; border-bottom: 1px solid #f8f8f8; padding: 8px 0; color: #636e72; line-height: 1.4; }
+        .log-time { color: #b2bec3; font-family: monospace; }
+        .log-change { display: block; margin-top: 2px; }
+        .log-arrow { color: var(--secondary); font-weight: bold; }
 
-        .balance-display {
-            font-size: 1.8rem;
-            font-family: 'SF Mono', 'Roboto Mono', monospace;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 10px 0;
-            letter-spacing: -1px;
-            word-break: break-all;
-        }
-
-        .deposit-zone {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .deposit-input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #eee;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .deposit-input:focus { border-color: var(--secondary); }
-
-        .btn-deposit {
-            padding: 0 20px;
-            background: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
-        /* 後台遮罩層 */
+        /* 後台遮罩 */
         #backend-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            color: white;
-            z-index: 1000;
-            padding: 25px;
-            box-sizing: border-box;
-            overflow-y: auto;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); color: white; z-index: 1000; padding: 25px; box-sizing: border-box; overflow-y: auto;
         }
-        .backend-item {
-            background: #333;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-        }
-        .backend-item label { display: block; margin-bottom: 8px; color: #888; }
-        .backend-item input {
-            width: 100%;
-            background: #111;
-            color: #00ff00;
-            border: 1px solid #444;
-            padding: 10px;
-            font-size: 1.2rem;
-            border-radius: 8px;
-        }
-
-        .btn-full {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-top: 10px;
-            cursor: pointer;
-        }
+        .backend-item { background: #333; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+        .backend-item input { width: 100%; background: #111; color: #00ff00; border: 1px solid #444; padding: 8px; border-radius: 5px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div class="settings-row">
-        <span>匯率 1 USD =</span>
-        <input type="number" id="exRate" class="ex-rate-input" value="31.42" step="0.01" onchange="saveData()">
-        <span>TWD</span>
+        <span>匯率 1 USD = <input type="number" id="exRate" class="ex-rate-input" value="31.42" onchange="saveData()"> TWD</span>
     </div>
     <div class="settings-row">
-        <span>顯示幣別:</span>
+        <span>幣別:</span>
         <div class="currency-toggle">
-            <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')">
-            <label for="currUSD">USD</label>
-            <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')">
-            <label for="currTWD">TWD</label>
+            <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')"><label for="currUSD">USD</label>
+            <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')"><label for="currTWD">TWD</label>
         </div>
     </div>
     <div class="tool-bar">
@@ -221,150 +98,126 @@
     </div>
 </div>
 
-<div id="kids-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+<div id="kids-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+
+<div class="log-section">
+    <div class="log-title">🕒 最近 10 筆修改紀錄</div>
+    <div id="log-list">
+        <div style="text-align: center; color: #ccc; padding: 10px;">尚無紀錄</div>
     </div>
+</div>
 
 <div id="backend-overlay">
-    <h2 style="margin-top: 0;">🛠 後台數據調整</h2>
-    <p style="color: #ff7675; font-size: 0.9rem;">修改後將直接更新美金基準本金並重新計時。</p>
+    <h2>🛠 後台管理</h2>
     <div id="backend-list"></div>
-    <button onclick="saveBackend()" class="btn-full" style="background: var(--primary); color: white;">確認儲存</button>
-    <button onclick="closeBackend()" class="btn-full" style="background: transparent; border: 1px solid #555; color: #aaa;">取消返回</button>
+    <button onclick="saveBackend()" style="width:100%; padding:15px; background:var(--primary); color:white; border-radius:10px; font-size:1rem;">儲存</button>
+    <button onclick="closeBackend()" style="width:100%; margin-top:10px; padding:10px; background:none; border:1px solid #555; color:#999;">取消</button>
 </div>
 
 <script>
-    const INTEREST_RATE_PER_SEC = 0.000000001607; // 0.0000001607% 轉為純小數
-    
-    // 預設資料
+    const INTEREST_RATE_PER_SEC = 0.000000001607;
     let state = {
         preferredCurrency: "USD",
         exRate: 31.42,
         kids: [
-            { id: 0, name: "小朋友A", baseBalance: 100, lastTimestamp: Date.now() },
-            { id: 1, name: "小朋友B", baseBalance: 89.99, lastTimestamp: Date.now() },
-            { id: 2, name: "小朋友C", baseBalance: 89.99, lastTimestamp: Date.now() }
-        ]
+            { id: 0, name: "Lionel", baseBalance: 100, lastTimestamp: Date.now() },
+            { id: 1, name: "Yosie", baseBalance: 89.99, lastTimestamp: Date.now() },
+            { id: 2, name: "Yvonne", baseBalance: 89.99, lastTimestamp: Date.now() }
+        ],
+        logs: []
     };
 
-    let historyStack = [];
-    let redoStack = [];
+    let historyStack = [], redoStack = [];
 
-    // 初始化
     function init() {
-        const saved = localStorage.getItem('piggy_bank_v2');
-        if (saved) {
-            state = JSON.parse(saved);
-        }
-        
-        // 設定匯率與幣別 UI
-        document.getElementById('exRate').value = state.exRate || 31.42;
-        if (state.preferredCurrency === "TWD") {
-            document.getElementById('currTWD').checked = true;
-        } else {
-            document.getElementById('currUSD').checked = true;
-        }
-
+        const saved = localStorage.getItem('piggy_bank_v3');
+        if (saved) state = JSON.parse(saved);
+        document.getElementById('exRate').value = state.exRate;
+        if (state.preferredCurrency === "TWD") document.getElementById('currTWD').checked = true;
+        else document.getElementById('currUSD').checked = true;
         renderCards();
+        renderLogs();
         tick();
     }
 
     function saveData() {
-        state.exRate = parseFloat(document.getElementById('exRate').value);
-        localStorage.setItem('piggy_bank_v2', JSON.stringify(state));
+        state.exRate = parseFloat(document.getElementById('exRate').value) || 31.42;
+        localStorage.setItem('piggy_bank_v3', JSON.stringify(state));
     }
 
-    function pushHistory() {
-        historyStack.push(JSON.stringify(state));
-        if (historyStack.length > 30) historyStack.shift();
-        redoStack = []; // 執行新動作時清空重做堆疊
+    function addLog(name, oldVal, newVal) {
+        const time = new Date().toLocaleString('zh-TW', { hour12: false });
+        state.logs.unshift({ time, name, oldVal, newVal });
+        if (state.logs.length > 10) state.logs.pop();
+        renderLogs();
     }
 
-    // 計算目前的即時總額 (利息計算公式)
+    function renderLogs() {
+        const logList = document.getElementById('log-list');
+        if (state.logs.length === 0) return;
+
+        const isTWD = state.preferredCurrency === "TWD";
+        const rate = state.exRate;
+        const sym = isTWD ? "NT$" : "$";
+        const dec = isTWD ? 5 : 6;
+
+        logList.innerHTML = state.logs.map(log => {
+            const displayOld = (isTWD ? log.oldVal * rate : log.oldVal).toFixed(dec);
+            const displayNew = (isTWD ? log.newVal * rate : log.newVal).toFixed(dec);
+            return `
+                <div class="log-item">
+                    <span class="log-time">[${log.time}]</span> <b>${log.name}</b><br>
+                    <span class="log-change">${sym}${displayOld} <span class="log-arrow">➜</span> ${sym}${displayNew}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
     function calculateCurrentBalance(kid) {
-        const now = Date.now();
-        const secondsElapsed = (now - kid.lastTimestamp) / 1000;
+        const secondsElapsed = (Date.now() - kid.lastTimestamp) / 1000;
         return kid.baseBalance * Math.pow(1 + INTEREST_RATE_PER_SEC, secondsElapsed);
     }
 
-    // 幣別切換控制
-    function setCurrency(val) {
-        state.preferredCurrency = val;
-        saveData();
-        updateUI();
-    }
+    function setCurrency(val) { state.preferredCurrency = val; saveData(); renderLogs(); }
 
-    // 存入功能
     function deposit(id) {
         const input = document.getElementById(`input-${id}`);
         const amount = parseFloat(input.value);
         if (isNaN(amount) || amount <= 0) return;
 
-        pushHistory(); // 紀錄舊狀態
-
+        pushHistory();
         const kid = state.kids.find(k => k.id === id);
-        const currentUsd = calculateCurrentBalance(kid);
-        
-        const isTWD = state.preferredCurrency === "TWD";
-        const exRate = parseFloat(document.getElementById('exRate').value);
-        const usdToAdd = isTWD ? amount / exRate : amount;
+        const oldUsd = calculateCurrentBalance(kid);
+        const usdToAdd = (state.preferredCurrency === "TWD") ? amount / state.exRate : amount;
 
-        // 更新基準點
-        kid.baseBalance = currentUsd + usdToAdd;
+        kid.baseBalance = oldUsd + usdToAdd;
         kid.lastTimestamp = Date.now();
 
+        addLog(kid.name, oldUsd, kid.baseBalance);
         input.value = '';
         saveData();
     }
 
-    // 生成卡片
     function renderCards() {
-        const container = document.getElementById('kids-container');
-        container.innerHTML = state.kids.map(kid => `
+        document.getElementById('kids-container').innerHTML = state.kids.map(kid => `
             <div class="card">
-                <input type="text" class="name-input" value="${kid.name}" onchange="updateKidName(${kid.id}, this.value)">
+                <input type="text" class="name-input" value="${kid.name}" onchange="updateName(${kid.id}, this.value)">
                 <div class="balance-display" id="balance-${kid.id}">0.00</div>
                 <div class="deposit-zone">
-                    <input type="number" class="deposit-input" id="input-${kid.id}" 
-                           placeholder="存入金額" inputmode="decimal">
+                    <input type="number" class="deposit-input" id="input-${kid.id}" placeholder="金額" inputmode="decimal">
                     <button class="btn-deposit" onclick="deposit(${kid.id})">存入</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function updateKidName(id, newName) {
-        state.kids.find(k => k.id === id).name = newName;
-        saveData();
-    }
+    function updateName(id, name) { state.kids.find(k => k.id === id).name = name; saveData(); renderLogs(); }
 
-    // UI 每秒更新
-    function updateUI() {
-        const isTWD = state.preferredCurrency === "TWD";
-        const exRate = parseFloat(document.getElementById('exRate').value);
-        const symbol = isTWD ? "NT$" : "$";
-        const decimals = isTWD ? 5 : 6; // 這裡修改台幣顯示 5 位數
-
-        state.kids.forEach(kid => {
-            let balance = calculateCurrentBalance(kid);
-            if (isTWD) balance *= exRate;
-            
-            const el = document.getElementById(`balance-${kid.id}`);
-            if (el) el.innerText = `${symbol} ${balance.toFixed(decimals)}`;
-        });
-    }
-
-    function tick() {
-        updateUI();
-        requestAnimationFrame(tick);
-    }
-
-    // 後台管理
     function openBackend() {
-        const list = document.getElementById('backend-list');
-        list.innerHTML = state.kids.map(kid => `
+        document.getElementById('backend-list').innerHTML = state.kids.map(kid => `
             <div class="backend-item">
-                <label>${kid.name} 的美金餘額 (USD)</label>
-                <input type="number" id="back-input-${kid.id}" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(6)}">
+                <label>${kid.name} (USD)</label>
+                <input type="number" id="back-${kid.id}" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(6)}">
             </div>
         `).join('');
         document.getElementById('backend-overlay').style.display = 'block';
@@ -373,27 +226,27 @@
     function saveBackend() {
         pushHistory();
         state.kids.forEach(kid => {
-            const newVal = parseFloat(document.getElementById(`back-input-${kid.id}`).value);
-            if (!isNaN(newVal)) {
+            const oldUsd = calculateCurrentBalance(kid);
+            const newVal = parseFloat(document.getElementById(`back-${kid.id}`).value);
+            if (!isNaN(newVal) && Math.abs(oldUsd - newVal) > 0.000001) {
                 kid.baseBalance = newVal;
                 kid.lastTimestamp = Date.now();
+                addLog(kid.name, oldUsd, newVal);
             }
         });
         saveData();
         closeBackend();
     }
 
-    function closeBackend() {
-        document.getElementById('backend-overlay').style.display = 'none';
-    }
+    function closeBackend() { document.getElementById('backend-overlay').style.display = 'none'; }
 
-    // 復原與重做
+    function pushHistory() { historyStack.push(JSON.stringify(state)); redoStack = []; if (historyStack.length > 30) historyStack.shift(); }
+
     function undo() {
         if (historyStack.length > 0) {
             redoStack.push(JSON.stringify(state));
             state = JSON.parse(historyStack.pop());
-            saveData();
-            renderCards();
+            saveData(); renderCards(); renderLogs();
         }
     }
 
@@ -401,15 +254,23 @@
         if (redoStack.length > 0) {
             historyStack.push(JSON.stringify(state));
             state = JSON.parse(redoStack.pop());
-            saveData();
-            renderCards();
+            saveData(); renderCards(); renderLogs();
         }
     }
 
-    // 啟動程式
+    function tick() {
+        const isTWD = state.preferredCurrency === "TWD";
+        const dec = isTWD ? 5 : 6;
+        state.kids.forEach(kid => {
+            let bal = calculateCurrentBalance(kid);
+            if (isTWD) bal *= state.exRate;
+            document.getElementById(`balance-${kid.id}`).innerText = `${isTWD ? 'NT$' : '$'} ${bal.toFixed(dec)}`;
+        });
+        requestAnimationFrame(tick);
+    }
+
     init();
 </script>
 
 </body>
 </html>
-
