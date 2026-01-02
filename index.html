@@ -279,7 +279,10 @@
         state.kids.forEach(kid => {
             let balance = calculateCurrentBalance(kid);
             if (isTWD) balance *= exRate;
-            document.getElementById(`balance-${kid.id}`).innerText = `${symbol} ${balance.toFixed(isTWD ? 2 : 6)}`;
+            
+            // 修改這裡：isTWD 為 true 時，位數設為 5；為 false (USD) 時設為 6
+            const decimals = isTWD ? 5 : 6;
+            document.getElementById(`balance-${kid.id}`).innerText = `${symbol} ${balance.toFixed(decimals)}`;
         });
     }
 
@@ -310,4 +313,5 @@
 </script>
 
 </body>
+
 </html>
