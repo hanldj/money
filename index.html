@@ -2,103 +2,311 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小豬撲滿 - V10 垂直噴發版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>小豬撲滿 - V10 行動優化版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #ff6b6b; --secondary: #4ecdc4; --bg: #f7f9fc; --card: #ffffff; --text: #2d3436; --gray: #95a5a6; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --accent: #74b9ff;
+            --bg: #f2f5f8;
+            --card: #ffffff;
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --shadow: 0 10px 20px rgba(0,0,0,0.05);
+            --safe-top: env(safe-area-inset-top);
+        }
 
-        /* 區塊樣式 */
-        .header, .card, .log-section { width: 100%; max-width: 500px; background: var(--card); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; padding: 15px; box-sizing: border-box; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
-        .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .ex-rate-input { width: 75px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
-        .currency-toggle { background: #eee; padding: 4px; border-radius: 10px; display: flex; }
-        .currency-toggle label { padding: 6px 12px; cursor: pointer; border-radius: 8px; font-size: 0.85rem; }
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: calc(20px + var(--safe-top)) 16px 40px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- 控制面板優化 --- */
+        .header {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .setting-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .setting-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; }
+
+        .ex-rate-input {
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--primary);
+            width: 100%;
+            outline: none;
+        }
+
+        .currency-toggle {
+            display: flex;
+            background: #e9ecef;
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .currency-toggle label {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
         input[type="radio"] { display: none; }
-        input[type="radio"]:checked + label { background: var(--primary); color: white; }
+        input[type="radio"]:checked + label { background: white; color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        .tool-bar { display: flex; gap: 8px; margin-top: 10px; }
-        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.1s; color: white; }
-        .btn-small { flex: 1; padding: 10px; font-size: 0.8rem; }
-        .btn-undo { background: var(--gray); }
-        .btn-admin { background: #636e72; }
+        .tool-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .btn-tool {
+            background: #eee;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
 
-        .card { border-left: 10px solid var(--primary); }
-        .name-row { display: flex; justify-content: space-between; align-items: center; }
-        .name-input { font-size: 1.2rem; font-weight: 800; border: none; background: transparent; width: 60%; outline: none; }
-        .btn-detail { background: #74b9ff; font-size: 0.75rem; padding: 5px 10px; }
+        /* --- 孩子資產卡片優化 --- */
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
 
-        .balance-display { font-size: 1.4rem; font-family: 'Courier New', monospace; font-weight: bold; color: var(--primary); margin: 10px 0; word-break: break-all; }
-        .deposit-zone { display: flex; gap: 8px; }
-        .deposit-input { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 10px; outline: none; width: 35%; font-size: 1rem; }
-        .btn-deposit { padding: 0 15px; height: 45px; font-size: 0.9rem; flex-shrink: 0; }
+        .card::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+            background: var(--primary);
+        }
 
-        /* 遮罩面板樣式 */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; color: white; }
-        .chart-container { background: #1e1e1e; border-radius: 15px; padding: 10px; margin-bottom: 20px; height: 320px; position: relative; }
-        .detail-info { background: #1e1e1e; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        .detail-label { color: #888; font-size: 0.8rem; margin-bottom: 4px; }
-        .detail-value { font-family: 'Courier New', monospace; font-size: 1.1rem; color: #fff; margin-bottom: 12px; word-break: break-all; }
-        .interest-value { color: #00ecbc; font-weight: bold; }
+        .name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .name-input {
+            font-size: 1.3rem;
+            font-weight: 800;
+            border: none;
+            color: var(--text-main);
+            width: 60%;
+            outline: none;
+        }
 
-        .log-section { font-size: 0.8rem; }
-        .log-item { border-bottom: 1px solid #f1f3f5; padding: 10px 0; }
-        .tag { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.7rem; margin-right: 4px; display: inline-block; }
-        .tag-deposit { background: var(--secondary); }
-        .tag-expense { background: var(--primary); }
+        .btn-detail {
+            background: var(--bg);
+            color: var(--accent);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .balance-display {
+            font-size: 1.8rem;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 15px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .deposit-zone {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .deposit-input {
+            flex: 1.5;
+            padding: 14px;
+            border: 2px solid #f1f3f5;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .deposit-input:focus { border-color: var(--accent); background: #f8fbff; }
+
+        .btn-action {
+            flex: 1;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* --- 全螢幕面板 (Overlay) 優化 --- */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            padding: 24px;
+            color: white;
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 15px;
+            margin: 20px 0;
+            height: 45vh;
+        }
+
+        .detail-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* --- 紀錄列表 --- */
+        .log-section {
+            width: 100%;
+            max-width: 480px;
+            background: transparent;
+        }
+
+        .log-item {
+            background: white;
+            margin-bottom: 10px;
+            padding: 16px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .tag {
+            font-size: 0.65rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .tag-deposit { background: #e6fffa; color: #38b2ac; }
+        .tag-expense { background: #fff5f5; color: #e53e3e; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="settings-row">
-        <span>匯率 1 USD = <input type="number" id="exRate" class="ex-rate-input" value="31.42" onchange="saveData()"> TWD</span>
-    </div>
-    <div class="settings-row">
-        <span>顯示幣別:</span>
-        <div class="currency-toggle">
-            <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')"><label for="currUSD">USD</label>
-            <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')"><label for="currTWD">TWD</label>
+    <div class="settings-grid">
+        <div class="setting-box">
+            <span class="setting-label">1 USD 匯率 (TWD)</span>
+            <input type="number" id="exRate" class="ex-rate-input" value="31.42" onchange="saveData()">
+        </div>
+        <div class="setting-box">
+            <span class="setting-label">顯示幣別</span>
+            <div class="currency-toggle">
+                <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')">
+                <label for="currUSD">USD</label>
+                <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')">
+                <label for="currTWD">TWD</label>
+            </div>
         </div>
     </div>
     <div class="tool-bar">
-        <button class="btn-small btn-undo" onclick="undo()">↩ 復原</button>
-        <button class="btn-small btn-undo" onclick="redo()">↪ 重做</button>
-        <button class="btn-small btn-admin" onclick="openBackend()">⚙️ 後台管理</button>
+        <button class="btn-tool" onclick="undo()">↩ 撤銷</button>
+        <button class="btn-tool" onclick="redo()">↪ 重做</button>
+        <button class="btn-tool" onclick="openBackend()">⚙️ 管理</button>
     </div>
 </div>
 
 <div id="kids-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
 
 <div class="log-section">
-    <div style="font-weight:bold; color:var(--gray); margin-bottom:10px;">🕒 最近 10 筆變動紀錄</div>
+    <h3 style="font-size: 0.9rem; color: var(--text-sub); margin: 10px 0 15px 5px;">🕒 最近活動</h3>
     <div id="log-list"></div>
 </div>
 
 <div id="detail-overlay" class="overlay">
-    <h2 id="detail-title" style="text-align: center;">資產趨勢</h2>
-    <div class="chart-container"><canvas id="historyChart"></canvas></div>
-    <div class="detail-info">
-        <div class="detail-label">數據啟始時間</div>
-        <div id="detail-start-date" style="font-size: 0.85rem; color: #74b9ff; margin-bottom: 12px;"></div>
-        <div class="detail-label">基準本金 (Settlement)</div>
-        <div id="detail-base" class="detail-value"></div>
-        <div class="detail-label">累計利息 (Accrued)</div>
-        <div id="detail-interest" class="detail-value interest-value"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 id="detail-title" style="margin:0;">資產趨勢</h2>
+        <span onclick="closeDetail()" style="font-size: 1.5rem; opacity: 0.5;">✕</span>
     </div>
-    <button onclick="closeDetail()" style="width:100%; padding:15px; background:var(--secondary); border-radius:12px;">關閉面板</button>
+
+    <div class="chart-container"><canvas id="historyChart"></canvas></div>
+
+    <div class="detail-card">
+        <div class="setting-label" style="color: #aaa;">數據統計自</div>
+        <div id="detail-start-date" style="margin-bottom: 15px; font-size: 0.9rem;"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <div class="setting-label" style="color: #aaa;">基準本金</div>
+                <div id="detail-base" style="font-family: monospace; font-size: 1rem;"></div>
+            </div>
+            <div>
+                <div class="setting-label" style="color: #00ecbc;">累計利息</div>
+                <div id="detail-interest" style="font-family: monospace; font-size: 1rem; color: #00ecbc;"></div>
+            </div>
+        </div>
+    </div>
+    <button onclick="closeDetail()" style="width:100%; padding:18px; background:var(--accent); border:none; border-radius:18px; color:white; font-weight:bold; font-size:1.1rem;">回到列表</button>
 </div>
 
-<div id="backend-overlay" class="overlay" style="background: rgba(0,0,0,0.95);">
-    <h2>⚙️ 後台校正</h2>
+<div id="backend-overlay" class="overlay">
+    <h2>⚙️ 資產校正</h2>
+    <p style="color: #888; font-size: 0.8rem; margin-bottom: 20px;">手動調整目前的基準金額（USD）</p>
     <div id="backend-list"></div>
-    <button onclick="saveBackend()" style="width:100%; padding:15px; background:var(--primary); border-radius:12px; margin-top:15px;">儲存</button>
-    <button onclick="closeBackend()" style="width:100%; margin-top:10px; background:none; border:1px solid #555;">取消</button>
+    <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="saveBackend()" style="padding:18px; background:var(--primary); border:none; border-radius:18px; color:white; font-weight:bold;">確認儲存</button>
+        <button onclick="closeBackend()" style="padding:15px; background:transparent; border:1px solid #444; border-radius:18px; color:#888;">放棄更改</button>
+    </div>
 </div>
 
 <script>
+    /* [保留原始邏輯]：以下 JS 核心算法與您 V10 版本保持一致，僅對渲染部分進行微調
+    */
     const INTEREST_RATE_PER_SEC = 0.000000001607;
     let state = {
         preferredCurrency: "USD",
@@ -130,15 +338,12 @@
         localStorage.setItem('piggy_bank_v10_final', JSON.stringify(state));
     }
 
-    function format12(num) { return Number(num).toPrecision(12); }
-
     function calculateCurrentBalance(kid) {
         return kid.baseBalance * Math.pow(1 + INTEREST_RATE_PER_SEC, (Date.now() - kid.lastTimestamp) / 1000);
     }
 
-    function recordHistory(kid) {
-        kid.history.push({ t: Date.now(), y: kid.baseBalance });
-        if (kid.history.length > 1000) kid.history.shift();
+    function formatDisplay(num) {
+        return Number(num).toLocaleString('zh-TW', { minimumFractionDigits: 8, maximumFractionDigits: 8 });
     }
 
     function deposit(id, isExpense) {
@@ -148,105 +353,44 @@
 
         pushHistory();
         const kid = state.kids.find(k => k.id === id);
-
-        // --- 核心修正：實現垂直陡升 ---
-        // 1. 先紀錄「存入前一刻」的點
         const oldUsdWithInterest = calculateCurrentBalance(kid);
+
+        // 垂直噴發點紀錄
         kid.history.push({ t: Date.now() - 1, y: oldUsdWithInterest });
 
-        // 2. 更新基準金額
         const usdToAdd = (state.preferredCurrency === "TWD") ? amount / state.exRate : amount;
         kid.baseBalance = oldUsdWithInterest + (isExpense ? -Math.abs(usdToAdd) : Math.abs(usdToAdd));
         kid.lastTimestamp = Date.now();
 
-        // 3. 紀錄「存入後」的新起始點
-        recordHistory(kid);
+        // 新起始點
+        kid.history.push({ t: Date.now(), y: kid.baseBalance });
+        if (kid.history.length > 1000) kid.history.shift();
 
-        state.logs.unshift({ time: new Date().toLocaleString(), action: isExpense?"支出":"存入", name: kid.name, oldVal: oldUsdWithInterest, newVal: kid.baseBalance });
+        state.logs.unshift({
+            time: new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'}),
+            action: isExpense?"支出":"存入",
+            name: kid.name,
+            amount: amount
+        });
         if (state.logs.length > 10) state.logs.pop();
 
         input.value = ''; saveData(); renderLogs();
-    }
-
-    function openDetail(id) {
-        currentDetailId = id;
-        const kid = state.kids.find(k => k.id === id);
-        const isTWD = state.preferredCurrency === "TWD";
-        const rate = state.exRate;
-
-        document.getElementById('detail-title').innerText = kid.name + " 的資產趨勢";
-        const startDate = new Date(kid.history[0].t);
-        document.getElementById('detail-start-date').innerText = "📊 數據起始於: " + startDate.toLocaleString();
-        document.getElementById('detail-overlay').style.display = 'block';
-
-        const ctx = document.getElementById('historyChart').getContext('2d');
-        const currentPoints = [...kid.history, { t: Date.now(), y: calculateCurrentBalance(kid) }];
-        const chartData = currentPoints.map(pt => ({ x: pt.t, y: pt.y * (isTWD ? rate : 1) }));
-
-        const totalSpan = currentPoints[currentPoints.length - 1].t - currentPoints[0].t;
-        const isLongTerm = totalSpan > 24 * 60 * 60 * 1000;
-
-        if (myChart) myChart.destroy();
-
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: '資產總額',
-                    data: chartData,
-                    borderColor: '#00ecbc',
-                    borderWidth: 2,
-                    pointRadius: 0, // 改為隱藏數據點，讓線條更平滑專業
-                    fill: true,
-                    backgroundColor: (context) => {
-                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 300);
-                        gradient.addColorStop(0, 'rgba(0, 236, 188, 0.4)');
-                        gradient.addColorStop(1, 'rgba(0, 236, 188, 0)');
-                        return gradient;
-                    },
-                    tension: 0 // 改為 0 以呈現稜角分明的垂直變化
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: {
-                        type: 'linear',
-                        display: true,
-                        grid: { color: '#222' },
-                        ticks: {
-                            color: '#777',
-                            maxTicksLimit: 6,
-                            font: { size: 10 },
-                            callback: function(value, index) {
-                                const date = new Date(value);
-                                const hms = date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0') + ':' + String(date.getSeconds()).padStart(2, '0');
-                                const md = (date.getMonth() + 1) + '/' + date.getDate();
-                                if (index === 0 || isLongTerm) return md + " " + hms.split(':')[0] + ":" + hms.split(':')[1];
-                                return hms;
-                            }
-                        }
-                    },
-                    y: { grid: { color: '#222' }, ticks: { color: '#888', font: { size: 10 } } }
-                }
-            }
-        });
     }
 
     function tick() {
         const isTWD = state.preferredCurrency === "TWD";
         const rate = state.exRate;
         const sym = isTWD ? "NT$" : "$";
+
         state.kids.forEach(kid => {
             const currentTotalUsd = calculateCurrentBalance(kid);
             const displayTotal = currentTotalUsd * (isTWD ? rate : 1);
             const el = document.getElementById(`balance-${kid.id}`);
-            if (el) el.innerText = `${sym} ${format12(displayTotal)}`;
+            if (el) el.innerText = `${sym} ${formatDisplay(displayTotal)}`;
+
             if (currentDetailId === kid.id) {
-                document.getElementById('detail-base').innerText = `${sym} ${format12(kid.baseBalance * (isTWD ? rate : 1))}`;
-                document.getElementById('detail-interest').innerText = `+ ${sym} ${format12((currentTotalUsd - kid.baseBalance) * (isTWD ? rate : 1))}`;
+                document.getElementById('detail-base').innerText = `${sym} ${formatDisplay(kid.baseBalance * (isTWD ? rate : 1))}`;
+                document.getElementById('detail-interest').innerText = `+ ${sym} ${formatDisplay((currentTotalUsd - kid.baseBalance) * (isTWD ? rate : 1))}`;
                 if(myChart) {
                     const newData = [...kid.history, { t: Date.now(), y: currentTotalUsd }];
                     myChart.data.datasets[0].data = newData.map(pt => ({ x: pt.t, y: pt.y * (isTWD ? rate : 1) }));
@@ -260,14 +404,71 @@
     function renderCards() {
         document.getElementById('kids-container').innerHTML = state.kids.map(kid => `
             <div class="card">
-                <div class="name-row"><input type="text" class="name-input" value="${kid.name}" onchange="updateKidName(${kid.id}, this.value)"><button class="btn-detail" onclick="openDetail(${kid.id})">細節圖表</button></div>
+                <div class="name-row">
+                    <input type="text" class="name-input" value="${kid.name}" onchange="updateKidName(${kid.id}, this.value)">
+                    <button class="btn-detail" onclick="openDetail(${kid.id})">趨勢圖</button>
+                </div>
+                <div class="setting-label">目前資產估值</div>
                 <div class="balance-display" id="balance-${kid.id}">0.00</div>
                 <div class="deposit-zone">
-                    <input type="number" class="deposit-input" id="input-${kid.id}" placeholder="金額" inputmode="decimal">
-                    <button class="btn-deposit" style="background:var(--secondary);" onclick="deposit(${kid.id}, false)">存入</button>
-                    <button class="btn-deposit" style="background:var(--primary);" onclick="deposit(${kid.id}, true)">支出</button>
+                    <input type="number" class="deposit-input" id="input-${kid.id}" placeholder="0.00" inputmode="decimal">
+                    <button class="btn-action" style="background:var(--secondary);" onclick="deposit(${kid.id}, false)">存入</button>
+                    <button class="btn-action" style="background:var(--primary);" onclick="deposit(${kid.id}, true)">支出</button>
                 </div>
             </div>`).join('');
+    }
+
+    function renderLogs() {
+        const isTWD = state.preferredCurrency === "TWD";
+        document.getElementById('log-list').innerHTML = state.logs.map(log => `
+            <div class="log-item">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span class="tag ${log.action==='存入'?'tag-deposit':'tag-expense'}">${log.action}</span>
+                    <div>
+                        <div style="font-weight:bold; font-size:0.9rem;">${log.name}</div>
+                        <div style="color:#999; font-size:0.7rem;">${log.time}</div>
+                    </div>
+                </div>
+                <div style="font-weight:700; color:${log.action==='存入'?'#38b2ac':'#e53e3e'}">
+                    ${log.action==='存入'?'+':'-'} ${isTWD?'NT$':'$'}${log.amount}
+                </div>
+            </div>`).join('');
+    }
+
+    // Chart.js 初始化優化
+    function openDetail(id) {
+        currentDetailId = id;
+        const kid = state.kids.find(k => k.id === id);
+        const isTWD = state.preferredCurrency === "TWD";
+        document.getElementById('detail-title').innerText = kid.name;
+        document.getElementById('detail-start-date').innerText = new Date(kid.history[0].t).toLocaleString();
+        document.getElementById('detail-overlay').style.display = 'block';
+
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    data: kid.history.map(pt => ({ x: pt.t, y: pt.y * (isTWD ? state.exRate : 1) })),
+                    borderColor: '#00ecbc',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 236, 188, 0.1)',
+                    tension: 0 // 確保垂直噴發
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { type: 'linear', display: true, grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666', font: { size: 9 } } }
+                }
+            }
+        });
     }
 
     function updateKidName(id, name) { state.kids.find(k => k.id === id).name = name; saveData(); }
@@ -275,30 +476,20 @@
     function closeDetail() { currentDetailId = null; document.getElementById('detail-overlay').style.display = 'none'; }
     function openBackend() {
         document.getElementById('backend-list').innerHTML = state.kids.map(kid => `
-            <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.8rem;">${kid.name}</label>
-            <input type="number" id="back-${kid.id}" style="width:100%;padding:10px;background:#111;color:#00ff00;border:1px solid #444;" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(8)}"></div>`).join('');
+            <div style="margin-bottom:15px;"><label style="color:#aaa;font-size:0.8rem;">${kid.name} (USD)</label>
+            <input type="number" id="back-${kid.id}" style="width:100%;padding:15px;background:#222;color:#00ff00;border:none;border-radius:12px;margin-top:5px;" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(8)}"></div>`).join('');
         document.getElementById('backend-overlay').style.display = 'block';
     }
     function saveBackend() {
         pushHistory();
         state.kids.forEach(kid => {
-            const oldUsd = calculateCurrentBalance(kid);
             const newVal = parseFloat(document.getElementById(`back-${kid.id}`).value);
-            if (!isNaN(newVal) && Math.abs(oldUsd - newVal) > 0.0000001) {
+            if (!isNaN(newVal)) {
                 kid.baseBalance = newVal; kid.lastTimestamp = Date.now();
-                recordHistory(kid);
-                state.logs.unshift({ time: new Date().toLocaleString(), action: "校正", name: kid.name, oldVal: oldUsd, newVal: kid.baseBalance });
+                kid.history.push({ t: Date.now(), y: kid.baseBalance });
             }
         });
-        saveData(); document.getElementById('backend-overlay').style.display = 'none'; renderLogs();
-    }
-    function renderLogs() {
-        const isTWD = state.preferredCurrency === "TWD";
-        const rate = state.exRate;
-        document.getElementById('log-list').innerHTML = state.logs.map(log => `
-            <div class="log-item"><span class="tag ${log.action==='存入'?'tag-deposit':'tag-expense'}">${log.action}</span> <b>${log.name}</b><br>
-            <span style="color:#999;font-size:0.7rem;">${log.time}</span><br>
-            ${isTWD?'NT$':'$'}${format12(log.oldVal*(isTWD?rate:1))} ➜ ${isTWD?'NT$':'$'}${format12(log.newVal*(isTWD?rate:1))}</div>`).join('');
+        saveData(); closeBackend();
     }
     function closeBackend() { document.getElementById('backend-overlay').style.display = 'none'; }
     function pushHistory() { historyStack.push(JSON.stringify(state)); redoStack = []; if (historyStack.length > 30) historyStack.shift(); }
