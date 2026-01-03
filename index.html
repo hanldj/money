@@ -3,321 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小豬撲滿 - 專業版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>小豬撲滿 - V10 垂直噴發版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap');
-        :root { --bg-dark: #0d1117; --card-dark: #161b22; --border-dark: #30363d; }
-        body { background-color: var(--bg-dark); color: #c9d1d9; font-family: -apple-system, sans-serif; overflow-x: hidden; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .card { background-color: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 12px; }
-        .btn-green { background-color: #238636; color: white; }
-        .btn-red { background-color: #da3633; color: white; }
-        input { background: #0d1117 !important; border: 1px solid var(--border-dark) !important; color: white !important; outline: none; }
-        input:focus { border-color: #58a6ff !important; }
-        /* 隱藏滾動條 */
-        ::-webkit-scrollbar { display: none; }
+        :root { --primary: #ff6b6b; --secondary: #4ecdc4; --bg: #f7f9fc; --card: #ffffff; --text: #2d3436; --gray: #95a5a6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+
+        /* 區塊樣式 */
+        .header, .card, .log-section { width: 100%; max-width: 500px; background: var(--card); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; padding: 15px; box-sizing: border-box; }
+
+        .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ex-rate-input { width: 75px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
+        .currency-toggle { background: #eee; padding: 4px; border-radius: 10px; display: flex; }
+        .currency-toggle label { padding: 6px 12px; cursor: pointer; border-radius: 8px; font-size: 0.85rem; }
+        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + label { background: var(--primary); color: white; }
+
+        .tool-bar { display: flex; gap: 8px; margin-top: 10px; }
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.1s; color: white; }
+        .btn-small { flex: 1; padding: 10px; font-size: 0.8rem; }
+        .btn-undo { background: var(--gray); }
+        .btn-admin { background: #636e72; }
+
+        .card { border-left: 10px solid var(--primary); }
+        .name-row { display: flex; justify-content: space-between; align-items: center; }
+        .name-input { font-size: 1.2rem; font-weight: 800; border: none; background: transparent; width: 60%; outline: none; }
+        .btn-detail { background: #74b9ff; font-size: 0.75rem; padding: 5px 10px; }
+
+        .balance-display { font-size: 1.4rem; font-family: 'Courier New', monospace; font-weight: bold; color: var(--primary); margin: 10px 0; word-break: break-all; }
+        .deposit-zone { display: flex; gap: 8px; }
+        .deposit-input { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 10px; outline: none; width: 35%; font-size: 1rem; }
+        .btn-deposit { padding: 0 15px; height: 45px; font-size: 0.9rem; flex-shrink: 0; }
+
+        /* 遮罩面板樣式 */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; color: white; }
+        .chart-container { background: #1e1e1e; border-radius: 15px; padding: 10px; margin-bottom: 20px; height: 320px; position: relative; }
+        .detail-info { background: #1e1e1e; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+        .detail-label { color: #888; font-size: 0.8rem; margin-bottom: 4px; }
+        .detail-value { font-family: 'Courier New', monospace; font-size: 1.1rem; color: #fff; margin-bottom: 12px; word-break: break-all; }
+        .interest-value { color: #00ecbc; font-weight: bold; }
+
+        .log-section { font-size: 0.8rem; }
+        .log-item { border-bottom: 1px solid #f1f3f5; padding: 10px 0; }
+        .tag { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.7rem; margin-right: 4px; display: inline-block; }
+        .tag-deposit { background: var(--secondary); }
+        .tag-expense { background: var(--primary); }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-xl font-bold text-white flex items-center">
-                <span class="mr-2">💰</span> 小豬撲滿
-            </h1>
-            <p class="text-[10px] text-gray-500 mono uppercase tracking-widest">Compounding Sec-Rate: 1.607e-9</p>
-        </div>
-        <div class="flex space-x-2">
-            <button onclick="handleUndo()" class="bg-gray-800 p-2 rounded border border-gray-700 active:bg-gray-700">↩️</button>
-            <button onclick="toggleCurrency()" id="currBtn" class="bg-gray-800 px-3 py-1 rounded text-sm font-bold text-yellow-500 border border-gray-700">TWD</button>
+<div class="header">
+    <div class="settings-row">
+        <span>匯率 1 USD = <input type="number" id="exRate" class="ex-rate-input" value="31.42" onchange="saveData()"> TWD</span>
+    </div>
+    <div class="settings-row">
+        <span>顯示幣別:</span>
+        <div class="currency-toggle">
+            <input type="radio" name="curr" id="currUSD" value="USD" onchange="setCurrency('USD')"><label for="currUSD">USD</label>
+            <input type="radio" name="curr" id="currTWD" value="TWD" onchange="setCurrency('TWD')"><label for="currTWD">TWD</label>
         </div>
     </div>
-
-    <div class="card p-3 mb-6 flex items-center justify-between text-sm">
-        <div class="flex items-center">
-            <span class="text-gray-400 mr-2">1 USD =</span>
-            <input type="number" id="exRateIn" step="0.1" class="w-16 px-2 py-1 rounded text-center mono" onchange="updateExRate(this.value)">
-            <span class="ml-2 text-gray-400">TWD</span>
-        </div>
-        <button onclick="toggleAdmin()" class="text-gray-500 p-1">⚙️</button>
+    <div class="tool-bar">
+        <button class="btn-small btn-undo" onclick="undo()">↩ 復原</button>
+        <button class="btn-small btn-undo" onclick="redo()">↪ 重做</button>
+        <button class="btn-small btn-admin" onclick="openBackend()">⚙️ 後台管理</button>
     </div>
+</div>
 
-    <div id="membersContainer" class="space-y-4"></div>
+<div id="kids-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
 
-    <div class="card mt-8 p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-sm font-bold text-gray-400">資產走勢 (USD)</h3>
-            <select id="chartSelect" onchange="updateChart()" class="bg-transparent text-blue-400 text-sm outline-none font-bold"></select>
-        </div>
-        <div class="h-60 w-full">
-            <canvas id="assetChart"></canvas>
-        </div>
+<div class="log-section">
+    <div style="font-weight:bold; color:var(--gray); margin-bottom:10px;">🕒 最近 10 筆變動紀錄</div>
+    <div id="log-list"></div>
+</div>
+
+<div id="detail-overlay" class="overlay">
+    <h2 id="detail-title" style="text-align: center;">資產趨勢</h2>
+    <div class="chart-container"><canvas id="historyChart"></canvas></div>
+    <div class="detail-info">
+        <div class="detail-label">數據啟始時間</div>
+        <div id="detail-start-date" style="font-size: 0.85rem; color: #74b9ff; margin-bottom: 12px;"></div>
+        <div class="detail-label">基準本金 (Settlement)</div>
+        <div id="detail-base" class="detail-value"></div>
+        <div class="detail-label">累計利息 (Accrued)</div>
+        <div id="detail-interest" class="detail-value interest-value"></div>
     </div>
+    <button onclick="closeDetail()" style="width:100%; padding:15px; background:var(--secondary); border-radius:12px;">關閉面板</button>
+</div>
 
-    <div class="mt-8">
-        <h3 class="text-xs font-bold mb-3 text-gray-500 uppercase">Recent Transactions</h3>
-        <div id="logContainer" class="space-y-2"></div>
-    </div>
+<div id="backend-overlay" class="overlay" style="background: rgba(0,0,0,0.95);">
+    <h2>⚙️ 後台校正</h2>
+    <div id="backend-list"></div>
+    <button onclick="saveBackend()" style="width:100%; padding:15px; background:var(--primary); border-radius:12px; margin-top:15px;">儲存</button>
+    <button onclick="closeBackend()" style="width:100%; margin-top:10px; background:none; border:1px solid #555;">取消</button>
+</div>
 
-    <div id="adminModal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-6">
-        <div class="card w-full max-w-sm p-6 border-red-900/50">
-            <h2 class="text-lg font-bold mb-4 text-red-500">系統校正面板</h2>
-            <div id="adminFields" class="space-y-4"></div>
-            <div class="mt-8 pt-4 border-t border-gray-800 flex flex-col gap-3">
-                <button onclick="resetData()" class="w-full p-2 bg-red-900/20 text-red-500 border border-red-900/50 rounded text-xs">⚠️ 重置所有資料</button>
-                <button onclick="toggleAdmin()" class="w-full p-2 bg-gray-800 rounded">關閉</button>
-            </div>
-        </div>
-    </div>
+<script>
+    const INTEREST_RATE_PER_SEC = 0.000000001607;
+    let state = {
+        preferredCurrency: "USD",
+        exRate: 31.42,
+        kids: [
+            { id: 0, name: "Lionel", baseBalance: 101.11, lastTimestamp: Date.now(), history: [] },
+            { id: 1, name: "Yosie", baseBalance: 91.10, lastTimestamp: Date.now(), history: [] },
+            { id: 2, name: "Yvonne", baseBalance: 91.10, lastTimestamp: Date.now(), history: [] }
+        ],
+        logs: []
+    };
 
-    <script>
-        // --- 核心算法參數 ---
-        const SEC_RATE = 0.000000001607; // 每秒利率
-        let state = {
-            exRate: 31.37,
-            curr: 'TWD',
-            members: [
-                { id: 0, name: "Lionel", baseUSD: 102.11, lastTS: Date.now(), history: [] },
-                { id: 1, name: "Yosie", baseUSD: 92.1, lastTS: Date.now(), history: [] },
-                { id: 2, name: "Yvonne", baseUSD: 92.1, lastTS: Date.now(), history: [] }
-            ],
-            logs: []
-        };
-        let undoStack = [];
-        let chartObj = null;
+    let historyStack = [], redoStack = [], currentDetailId = null, myChart = null;
 
-        // --- 初始化 ---
-        function init() {
-            const saved = localStorage.getItem('piggy_pro_v2');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                state = { ...state, ...parsed };
-                // 確保歷史紀錄不為空
-                state.members.forEach(m => { if(!m.history || m.history.length === 0) m.history = [{t: Date.now(), y: m.baseUSD}]; });
-            }
-            document.getElementById('exRateIn').value = state.exRate;
-            document.getElementById('currBtn').innerText = state.curr;
+    function init() {
+        const saved = localStorage.getItem('piggy_bank_v10_final');
+        if (saved) state = JSON.parse(saved);
+        state.kids.forEach(k => {
+            if(!k.history || k.history.length === 0) k.history = [{ t: k.lastTimestamp, y: k.baseBalance }];
+        });
+        document.getElementById('exRate').value = state.exRate || 31.42;
+        if (state.preferredCurrency === "TWD") document.getElementById('currTWD').checked = true;
+        else document.getElementById('currUSD').checked = true;
+        renderCards(); renderLogs(); tick();
+    }
 
-            renderMembers();
-            renderSelect();
-            initChart();
-            requestAnimationFrame(tick);
-        }
+    function saveData() {
+        state.exRate = parseFloat(document.getElementById('exRate').value) || 31.42;
+        localStorage.setItem('piggy_bank_v10_final', JSON.stringify(state));
+    }
 
-        function save(isUndo = false) {
-            if (!isUndo) {
-                undoStack.push(JSON.stringify(state));
-                if (undoStack.length > 30) undoStack.shift();
-            }
-            localStorage.setItem('piggy_pro_v2', JSON.stringify(state));
-            updateLogUI();
-        }
+    function format12(num) { return Number(num).toPrecision(12); }
 
-        // --- 秒複利計算引擎 ---
-        function getNowUSD(member) {
-            const elapsedSec = (Date.now() - member.lastTS) / 1000;
-            return member.baseUSD * Math.pow(1 + SEC_RATE, elapsedSec);
-        }
+    function calculateCurrentBalance(kid) {
+        return kid.baseBalance * Math.pow(1 + INTEREST_RATE_PER_SEC, (Date.now() - kid.lastTimestamp) / 1000);
+    }
 
-        function tick() {
-            state.members.forEach(m => {
-                const nowUSD = getNowUSD(m);
-                const val = state.curr === 'USD' ? nowUSD : nowUSD * state.exRate;
-                const el = document.getElementById(`amt-${m.id}`);
-                if (el) el.innerText = val.toPrecision(12);
-            });
-            requestAnimationFrame(tick);
-        }
+    function recordHistory(kid) {
+        kid.history.push({ t: Date.now(), y: kid.baseBalance });
+        if (kid.history.length > 1000) kid.history.shift();
+    }
 
-        // --- 交易邏輯 ---
-        function doTx(id, type) {
-            const input = document.getElementById(`in-${id}`);
-            const val = parseFloat(input.value);
-            if (isNaN(val) || val <= 0) return;
+    function deposit(id, isExpense) {
+        const input = document.getElementById(`input-${id}`);
+        let amount = parseFloat(input.value);
+        if (isNaN(amount) || amount === 0) return;
 
-            const m = state.members.find(x => x.id === id);
-            const now = Date.now();
-            const nowUSD = getNowUSD(m);
-            const deltaUSD = state.curr === 'USD' ? val : val / state.exRate;
+        pushHistory();
+        const kid = state.kids.find(k => k.id === id);
 
-            // 寫入歷史點 (用於圖表垂直跳空)
-            m.history.push({ t: now, y: nowUSD }); // 變動前的點
+        // --- 核心修正：實現垂直陡升 ---
+        // 1. 先紀錄「存入前一刻」的點
+        const oldUsdWithInterest = calculateCurrentBalance(kid);
+        kid.history.push({ t: Date.now() - 1, y: oldUsdWithInterest });
 
-            const nextUSD = type === 'in' ? nowUSD + deltaUSD : nowUSD - deltaUSD;
-            m.baseUSD = Math.max(0, nextUSD);
-            m.lastTS = now;
+        // 2. 更新基準金額
+        const usdToAdd = (state.preferredCurrency === "TWD") ? amount / state.exRate : amount;
+        kid.baseBalance = oldUsdWithInterest + (isExpense ? -Math.abs(usdToAdd) : Math.abs(usdToAdd));
+        kid.lastTimestamp = Date.now();
 
-            m.history.push({ t: now, y: m.baseUSD }); // 變動後的點
+        // 3. 紀錄「存入後」的新起始點
+        recordHistory(kid);
 
-            state.logs.unshift({
-                n: m.name,
-                type: type === 'in' ? '存入' : '支出',
-                v: val,
-                c: state.curr,
-                ts: new Date().toLocaleTimeString('zh-TW', {hour12:false})
-            });
-            if (state.logs.length > 10) state.logs.pop();
+        state.logs.unshift({ time: new Date().toLocaleString(), action: isExpense?"支出":"存入", name: kid.name, oldVal: oldUsdWithInterest, newVal: kid.baseBalance });
+        if (state.logs.length > 10) state.logs.pop();
 
-            input.value = '';
-            save();
-            updateChart();
-        }
+        input.value = ''; saveData(); renderLogs();
+    }
 
-        // --- UI 渲染 ---
-        function renderMembers() {
-            const wrap = document.getElementById('membersContainer');
-            wrap.innerHTML = state.members.map(m => `
-                <div class="card p-4">
-                    <div class="flex justify-between items-center mb-1">
-                        <input type="text" value="${m.name}" onchange="updateName(${m.id}, this.value)"
-                               class="bg-transparent border-none text-lg font-bold w-1/2 p-0 focus:ring-0">
-                        <span class="text-[9px] text-gray-600 mono">SEC-Compounding</span>
-                    </div>
-                    <div class="text-2xl font-bold mono text-yellow-500 mb-4 h-8 flex items-center" id="amt-${m.id}">0.000000000000</div>
-                    <div class="flex space-x-2">
-                        <input type="number" id="in-${m.id}" inputmode="decimal" placeholder="金額"
-                               class="flex-1 px-3 py-2 rounded text-base">
-                        <button onclick="doTx(${m.id}, 'in')" class="btn-green px-5 py-2 rounded font-bold active:opacity-80">存入</button>
-                        <button onclick="doTx(${m.id}, 'out')" class="btn-red px-5 py-2 rounded font-bold active:opacity-80">支出</button>
-                    </div>
-                </div>
-            `).join('');
-            updateLogUI();
-        }
+    function openDetail(id) {
+        currentDetailId = id;
+        const kid = state.kids.find(k => k.id === id);
+        const isTWD = state.preferredCurrency === "TWD";
+        const rate = state.exRate;
 
-        function updateLogUI() {
-            const logBox = document.getElementById('logContainer');
-            logBox.innerHTML = state.logs.map(l => `
-                <div class="flex justify-between items-center bg-gray-800/20 p-2 rounded border border-gray-800/50 text-[11px]">
-                    <span class="text-gray-400">${l.ts} <b class="text-gray-200 ml-1">${l.n}</b></span>
-                    <span class="${l.type==='存入'?'text-green-500':'text-red-500'} font-bold">
-                        ${l.type} ${l.v.toPrecision(12)} ${l.c}
-                    </span>
-                </div>
-            `).join('');
-        }
+        document.getElementById('detail-title').innerText = kid.name + " 的資產趨勢";
+        const startDate = new Date(kid.history[0].t);
+        document.getElementById('detail-start-date').innerText = "📊 數據起始於: " + startDate.toLocaleString();
+        document.getElementById('detail-overlay').style.display = 'block';
 
-        // --- 圖表邏輯 (含智慧橫軸) ---
-        function initChart() {
-            const ctx = document.getElementById('assetChart').getContext('2d');
-            chartObj = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Asset USD',
-                        borderColor: '#3fb950',
-                        borderWidth: 2,
-                        data: [],
-                        stepped: 'before', // ✨ 強制垂直跳空關鍵
-                        pointRadius: 0,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            grid: { color: '#21262d' },
-                            ticks: {
-                                color: '#8b949e',
-                                font: { size: 9 },
-                                maxRotation: 0,
-                                callback: function(value) {
-                                    const d = new Date(value);
-                                    const range = this.chart.scales.x.max - this.chart.scales.x.min;
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        const currentPoints = [...kid.history, { t: Date.now(), y: calculateCurrentBalance(kid) }];
+        const chartData = currentPoints.map(pt => ({ x: pt.t, y: pt.y * (isTWD ? rate : 1) }));
 
-                                    // 智慧格式判斷
-                                    if (range > 86400000) { // 大於 24 小時
-                                        return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-                                    } else {
-                                        return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
-                                    }
-                                }
+        const totalSpan = currentPoints[currentPoints.length - 1].t - currentPoints[0].t;
+        const isLongTerm = totalSpan > 24 * 60 * 60 * 1000;
+
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: '資產總額',
+                    data: chartData,
+                    borderColor: '#00ecbc',
+                    borderWidth: 2,
+                    pointRadius: 0, // 改為隱藏數據點，讓線條更平滑專業
+                    fill: true,
+                    backgroundColor: (context) => {
+                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, 'rgba(0, 236, 188, 0.4)');
+                        gradient.addColorStop(1, 'rgba(0, 236, 188, 0)');
+                        return gradient;
+                    },
+                    tension: 0 // 改為 0 以呈現稜角分明的垂直變化
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        display: true,
+                        grid: { color: '#222' },
+                        ticks: {
+                            color: '#777',
+                            maxTicksLimit: 6,
+                            font: { size: 10 },
+                            callback: function(value, index) {
+                                const date = new Date(value);
+                                const hms = date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0') + ':' + String(date.getSeconds()).padStart(2, '0');
+                                const md = (date.getMonth() + 1) + '/' + date.getDate();
+                                if (index === 0 || isLongTerm) return md + " " + hms.split(':')[0] + ":" + hms.split(':')[1];
+                                return hms;
                             }
-                        },
-                        y: {
-                            grid: { color: '#21262d' },
-                            ticks: { color: '#8b949e', font: { size: 9, family: 'JetBrains Mono' } }
                         }
                     },
-                    plugins: { legend: { display: false } }
+                    y: { grid: { color: '#222' }, ticks: { color: '#888', font: { size: 10 } } }
                 }
-            });
-            updateChart();
-        }
+            }
+        });
+    }
 
-        function updateChart() {
-            const sid = parseInt(document.getElementById('chartSelect').value) || 0;
-            const m = state.members.find(x => x.id === sid);
+    function tick() {
+        const isTWD = state.preferredCurrency === "TWD";
+        const rate = state.exRate;
+        const sym = isTWD ? "NT$" : "$";
+        state.kids.forEach(kid => {
+            const currentTotalUsd = calculateCurrentBalance(kid);
+            const displayTotal = currentTotalUsd * (isTWD ? rate : 1);
+            const el = document.getElementById(`balance-${kid.id}`);
+            if (el) el.innerText = `${sym} ${format12(displayTotal)}`;
+            if (currentDetailId === kid.id) {
+                document.getElementById('detail-base').innerText = `${sym} ${format12(kid.baseBalance * (isTWD ? rate : 1))}`;
+                document.getElementById('detail-interest').innerText = `+ ${sym} ${format12((currentTotalUsd - kid.baseBalance) * (isTWD ? rate : 1))}`;
+                if(myChart) {
+                    const newData = [...kid.history, { t: Date.now(), y: currentTotalUsd }];
+                    myChart.data.datasets[0].data = newData.map(pt => ({ x: pt.t, y: pt.y * (isTWD ? rate : 1) }));
+                    myChart.update('none');
+                }
+            }
+        });
+        requestAnimationFrame(tick);
+    }
 
-            // 構建顯示點
-            const dataPoints = [...m.history, { t: Date.now(), y: getNowUSD(m) }];
-            chartObj.data.datasets[0].data = dataPoints.map(p => ({ x: p.t, y: p.y }));
-            chartObj.update('none');
-        }
+    function renderCards() {
+        document.getElementById('kids-container').innerHTML = state.kids.map(kid => `
+            <div class="card">
+                <div class="name-row"><input type="text" class="name-input" value="${kid.name}" onchange="updateKidName(${kid.id}, this.value)"><button class="btn-detail" onclick="openDetail(${kid.id})">細節圖表</button></div>
+                <div class="balance-display" id="balance-${kid.id}">0.00</div>
+                <div class="deposit-zone">
+                    <input type="number" class="deposit-input" id="input-${kid.id}" placeholder="金額" inputmode="decimal">
+                    <button class="btn-deposit" style="background:var(--secondary);" onclick="deposit(${kid.id}, false)">存入</button>
+                    <button class="btn-deposit" style="background:var(--primary);" onclick="deposit(${kid.id}, true)">支出</button>
+                </div>
+            </div>`).join('');
+    }
 
-        // --- 輔助功能 ---
-        function toggleCurrency() {
-            state.curr = state.curr === 'TWD' ? 'USD' : 'TWD';
-            document.getElementById('currBtn').innerText = state.curr;
-            save(true);
-        }
+    function updateKidName(id, name) { state.kids.find(k => k.id === id).name = name; saveData(); }
+    function setCurrency(val) { state.preferredCurrency = val; saveData(); renderLogs(); }
+    function closeDetail() { currentDetailId = null; document.getElementById('detail-overlay').style.display = 'none'; }
+    function openBackend() {
+        document.getElementById('backend-list').innerHTML = state.kids.map(kid => `
+            <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.8rem;">${kid.name}</label>
+            <input type="number" id="back-${kid.id}" style="width:100%;padding:10px;background:#111;color:#00ff00;border:1px solid #444;" step="0.000001" value="${calculateCurrentBalance(kid).toFixed(8)}"></div>`).join('');
+        document.getElementById('backend-overlay').style.display = 'block';
+    }
+    function saveBackend() {
+        pushHistory();
+        state.kids.forEach(kid => {
+            const oldUsd = calculateCurrentBalance(kid);
+            const newVal = parseFloat(document.getElementById(`back-${kid.id}`).value);
+            if (!isNaN(newVal) && Math.abs(oldUsd - newVal) > 0.0000001) {
+                kid.baseBalance = newVal; kid.lastTimestamp = Date.now();
+                recordHistory(kid);
+                state.logs.unshift({ time: new Date().toLocaleString(), action: "校正", name: kid.name, oldVal: oldUsd, newVal: kid.baseBalance });
+            }
+        });
+        saveData(); document.getElementById('backend-overlay').style.display = 'none'; renderLogs();
+    }
+    function renderLogs() {
+        const isTWD = state.preferredCurrency === "TWD";
+        const rate = state.exRate;
+        document.getElementById('log-list').innerHTML = state.logs.map(log => `
+            <div class="log-item"><span class="tag ${log.action==='存入'?'tag-deposit':'tag-expense'}">${log.action}</span> <b>${log.name}</b><br>
+            <span style="color:#999;font-size:0.7rem;">${log.time}</span><br>
+            ${isTWD?'NT$':'$'}${format12(log.oldVal*(isTWD?rate:1))} ➜ ${isTWD?'NT$':'$'}${format12(log.newVal*(isTWD?rate:1))}</div>`).join('');
+    }
+    function closeBackend() { document.getElementById('backend-overlay').style.display = 'none'; }
+    function pushHistory() { historyStack.push(JSON.stringify(state)); redoStack = []; if (historyStack.length > 30) historyStack.shift(); }
+    function undo() { if (historyStack.length > 0) { redoStack.push(JSON.stringify(state)); state = JSON.parse(historyStack.pop()); saveData(); renderCards(); renderLogs(); } }
+    function redo() { if (redoStack.length > 0) { historyStack.push(JSON.stringify(state)); state = JSON.parse(redoStack.pop()); saveData(); renderCards(); renderLogs(); } }
 
-        function updateExRate(v) {
-            const r = parseFloat(v);
-            if (r > 0) { state.exRate = r; save(true); }
-        }
-
-        function updateName(id, n) {
-            state.members.find(x => x.id === id).name = n;
-            save(true);
-            renderSelect();
-        }
-
-        function handleUndo() {
-            if (undoStack.length === 0) return;
-            state = JSON.parse(undoStack.pop());
-            save(true);
-            renderMembers();
-            updateChart();
-        }
-
-        function renderSelect() {
-            const s = document.getElementById('chartSelect');
-            s.innerHTML = state.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
-        }
-
-        function toggleAdmin() {
-            const m = document.getElementById('adminModal');
-            if (m.classList.contains('hidden')) {
-                document.getElementById('adminFields').innerHTML = state.members.map(x => `
-                    <div class="flex flex-col">
-                        <label class="text-[10px] text-gray-500 mb-1">${x.name} 基準值 (USD)</label>
-                        <input type="number" step="0.01" value="${x.baseUSD}" onchange="adjBase(${x.id}, this.value)" class="p-2 rounded text-sm mono">
-                    </div>
-                `).join('');
-                m.classList.remove('hidden');
-            } else { m.classList.add('hidden'); }
-        }
-
-        function adjBase(id, v) {
-            const m = state.members.find(x => x.id === id);
-            m.baseUSD = parseFloat(v) || 0;
-            m.lastTS = Date.now();
-            m.history = [{ t: Date.now(), y: m.baseUSD }];
-            save();
-            updateChart();
-        }
-
-        function resetData() {
-            if(confirm("確定重置所有數據嗎？")) { localStorage.removeItem('piggy_pro_v2'); location.reload(); }
-        }
-
-        window.onload = init;
-    </script>
+    init();
+</script>
 </body>
 </html>
